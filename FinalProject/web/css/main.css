@@ -2,10 +2,22 @@ div.main-content {
     text-align:center;
 }
 input.form-control{
-    display:inline-block;
-    width: auto;
+    display: inline-block;
+    width: 350px;
 }
 div.airport-result {
-    display:inline-block;
+    display: inline-block;
+}
+div.loading {
+    background-image: url('http://i.imgur.com/seuaOqf.gif');
+    background-repeat: no-repeat;
+    background-size: 100px;    
+    width: 100px;
+    height: 100px;
+    display: none;
+    margin: 0 auto;
+}
+ul.flight-results {
+    list-style-type: none;
 }
 
