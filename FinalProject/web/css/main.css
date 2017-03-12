@@ -17,7 +17,13 @@ div.loading {
     display: none;
     margin: 0 auto;
 }
-ul.flight-results {
-    list-style-type: none;
+table.flight-results {
+    width: 75%;
+    margin: 0 auto;    
+    display: none;
+}
+th, td {
+    border: 1px solid #ccc;
+    text-align: center!important;
 }
 

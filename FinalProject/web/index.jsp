@@ -30,7 +30,7 @@
                     <div class="loading"></div>
                 </div>                
             </form>
-            <ul class="flight-results"></ul>
+            <table class="flight-results"></table>
             <div class="weather-results"></div>
             <div class="photo-results"></div>
         </div>        
@@ -51,17 +51,22 @@
                 });
             });
 
-            $('#source').keyup(function () {
+            $('#source').keypress(function () {
                 searchAirports($(this).val());
             });
 
-            $('#destination').keyup(function () {
+            $('#destination').keypress(function () {
                 searchAirports($(this).val());
+            });
+            
+            $('#flight-date').change(function() {
+                
             });
 
             $('.search').click(function (e) {
                 e.preventDefault();
                 $('div.loading').show();
+                $('table.flight-results').hide();
                 
                 var request = {
                     "request": {
@@ -87,15 +92,30 @@
                     contentType: 'application/json',
                     success: function (data) {
                         $('div.loading').hide();
-                        console.log(data);
+                        $('table.flight-results').html('<tr><th>Price</th><th>Departs / Arrives</th><th>Duration</th><th>Flight Number</th></tr>');
                         $.each(data.trips.tripOption, function(key, value) {
                             var price = value.saleTotal;
                             var duration = value.slice[0]['duration'];
-                            $('ul.flight-results').append('<li>Price: ' + price + '; Duration: ' + duration / 60 + ' hours</li>');
+                            var hours = Math.floor(duration / 60);
+                            var minutes = (duration % 60);
+                                                        
+                            var departureDate = value.slice[0]['segment'][0]['leg'][0]['departureTime'];
+                            var lastElement = value.slice[0]['segment'].length - 1;
+                            var arrivalDate = value.slice[0]['segment'][lastElement]['leg'][0]['arrivalTime']
+                            
+                            var carrierCode = value.slice[0]['segment'][0]['flight']['carrier'];
+                            var flightNumber = value.slice[0]['segment'][0]['flight']['number'];  
+                            
+                            $('table.flight-results').append('<tr><td>' + price + '</td><td>' + parseDate(departureDate) + ' / ' + parseDate(arrivalDate) + '</td><td>' + hours + ' hrs ' + minutes + ' mins</td><td>' + carrierCode + flightNumber + '</td></tr>');
+                            $('table.flight-results').show();
                         });
                     }
                 });
             });
+            
+            function parseDate(date) {                
+                return date.split('T')[1].substring(0, 5);
+            }
 
             function searchAirports(searchTerm) {
                 if (searchTerm.length > 1) {
@@ -106,6 +126,7 @@
                         dataType: 'JSONP',
                         data: {'api_key': 'c9a88c43-2e76-47ef-9779-54588569b52e', 'query': searchTerm},
                         success: function (data) {
+                            console.log(data);
                             airportList = [];
                             $.each(data.response.airports, addAirportToList);
                             $.each(data.response.airports_by_cities, addAirportToList);
