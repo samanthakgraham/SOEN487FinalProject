@@ -19,7 +19,9 @@
             <form class="flight-search">
                 <div class="form-group">
                     <input type="text" name="source" id="source" placeholder="From (city/airport code)" class="form-control" />                    
-                    <input type="text" name="destination" id="destination" placeholder="To (city/airport code)" class="form-control" />                        
+                    <input type="text" name="destination" id="destination" placeholder="To (city/airport code)" class="form-control" />
+                    <input type="hidden" name="destinationLat" id="destinationLat" />
+                    <input type="hidden" name="destinationLong" id="destinationLong" />
                 </div>
                 <div class="form-group">
                     <input type="date" name="flight-date" id="flight-date" class="form-control" />
@@ -47,6 +49,19 @@
                 $("#destination").autocomplete({
                     source: function (request, resolve) {
                         resolve(airportList);
+                    },
+                    select: function (event, ui) {
+                        var airportName = ui.item.value.split(' - ')[1];
+
+                        $.ajax({
+                            url: 'https://maps.googleapis.com/maps/api/geocode/json?address=' + encodeURI(airportName) + '&key=AIzaSyDgqKpfsG6ksNZtVGIEgJ9c_nlibI44X6k',
+                            type: 'GET',
+                            success: function (data) {
+                                var coordinates = data.results[0].geometry.location;
+                                $('#destinationLong').val(coordinates.lng);
+                                $('#destinationLat').val(coordinates.lat);
+                            }
+                        });
                     }
                 });
             });
@@ -58,16 +73,27 @@
             $('#destination').keypress(function () {
                 searchAirports($(this).val());
             });
-            
-            $('#flight-date').change(function() {
-                
+
+            $('#flight-date').change(function () {
+                // Get the weather from Darksky
+                var timestamp = new Date($(this).val()).getTime() / 1000;                
+
+                $.ajax({
+                    url: 'https://api.darksky.net/forecast/5a187554ebca604cf5d2625f2e9d9c40/' + $('#destinationLat').val() + ',' + $('#destinationLong').val() + ',' + timestamp,
+                    type: 'GET',
+                    crossDomain: true,
+                    dataType: 'JSONP',
+                    success: function (data) {
+                        console.log(data);
+                    }
+                });
             });
 
             $('.search').click(function (e) {
                 e.preventDefault();
                 $('div.loading').show();
                 $('table.flight-results').hide();
-                
+
                 var request = {
                     "request": {
                         "passengers": {
@@ -83,37 +109,36 @@
                         "solutions": "5"
                     }
                 };
-                
+
                 $.ajax({
                     url: 'https://www.googleapis.com/qpxExpress/v1/trips/search?key=AIzaSyBtKuHsOFmU1YvGYZbcNvxL9D0BoAP2MQs',
                     type: 'POST',
                     data: JSON.stringify(request),
-                    crossDomain: true,
                     contentType: 'application/json',
                     success: function (data) {
                         $('div.loading').hide();
                         $('table.flight-results').html('<tr><th>Price</th><th>Departs / Arrives</th><th>Duration</th><th>Flight Number</th></tr>');
-                        $.each(data.trips.tripOption, function(key, value) {
+                        $.each(data.trips.tripOption, function (key, value) {
                             var price = value.saleTotal;
                             var duration = value.slice[0]['duration'];
                             var hours = Math.floor(duration / 60);
                             var minutes = (duration % 60);
-                                                        
+
                             var departureDate = value.slice[0]['segment'][0]['leg'][0]['departureTime'];
                             var lastElement = value.slice[0]['segment'].length - 1;
                             var arrivalDate = value.slice[0]['segment'][lastElement]['leg'][0]['arrivalTime']
-                            
+
                             var carrierCode = value.slice[0]['segment'][0]['flight']['carrier'];
-                            var flightNumber = value.slice[0]['segment'][0]['flight']['number'];  
-                            
+                            var flightNumber = value.slice[0]['segment'][0]['flight']['number'];
+
                             $('table.flight-results').append('<tr><td>' + price + '</td><td>' + parseDate(departureDate) + ' / ' + parseDate(arrivalDate) + '</td><td>' + hours + ' hrs ' + minutes + ' mins</td><td>' + carrierCode + flightNumber + '</td></tr>');
                             $('table.flight-results').show();
                         });
                     }
                 });
             });
-            
-            function parseDate(date) {                
+
+            function parseDate(date) {
                 return date.split('T')[1].substring(0, 5);
             }
 
@@ -125,8 +150,7 @@
                         crossDomain: true,
                         dataType: 'JSONP',
                         data: {'api_key': 'c9a88c43-2e76-47ef-9779-54588569b52e', 'query': searchTerm},
-                        success: function (data) {
-                            console.log(data);
+                        success: function (data) {                            
                             airportList = [];
                             $.each(data.response.airports, addAirportToList);
                             $.each(data.response.airports_by_cities, addAirportToList);
