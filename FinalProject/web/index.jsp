@@ -12,6 +12,7 @@
         <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>                    
         <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+        <script src="js/skycons.js" type="text/javascript"></script>
     </head>
     <body>
         <div class="container-fluid main-content">
@@ -33,7 +34,14 @@
                 </div>                
             </form>
             <table class="flight-results"></table>
-            <div class="weather-results"></div>
+            <div class="weather-results">
+                <h5>Weather Forecast: </h5>
+                <canvas id="weather-icon" width="75" height="75"></canvas>
+                <div class="summary"></div>
+                <div class="temp-max"></div>
+                <div class="temp-min"></div>
+                <div class="darksky-logo"></div>
+            </div>
             <div class="photo-results"></div>
         </div>        
         <script type="text/javascript">
@@ -76,15 +84,22 @@
 
             $('#flight-date').change(function () {
                 // Get the weather from Darksky
-                var timestamp = new Date($(this).val()).getTime() / 1000;                
-
+                var timestamp = new Date($(this).val()).getTime() / 1000;
+                var skycons = new Skycons();                
+                
                 $.ajax({
                     url: 'https://api.darksky.net/forecast/5a187554ebca604cf5d2625f2e9d9c40/' + $('#destinationLat').val() + ',' + $('#destinationLong').val() + ',' + timestamp,
                     type: 'GET',
                     crossDomain: true,
                     dataType: 'JSONP',
-                    success: function (data) {
-                        console.log(data);
+                    data: {'units': 'si'},
+                    success: function (data) {                        
+                        $('div.weather-results div.summary').html(data.daily.data[0].summary);
+                        $('div.weather-results div.temp-max').html('High: ' + Math.round(data.daily.data[0].temperatureMax) + ' C (feels like ' + Math.round(data.daily.data[0].apparentTemperatureMax) + ' C)');
+                        $('div.weather-results div.temp-min').html('Low: ' + Math.round(data.daily.data[0].temperatureMin) + ' C (feels like ' + Math.round(data.daily.data[0].apparentTemperatureMin) + ' C)');
+                        
+                        skycons.add("weather-icon", data.daily.data[0].icon);
+                        skycons.play();
                     }
                 });
             });
@@ -92,7 +107,9 @@
             $('.search').click(function (e) {
                 e.preventDefault();
                 $('div.loading').show();
-                $('table.flight-results').hide();
+                $('table.flight-results').hide();   
+                $('div.weather-results').hide();
+                $('#flight-date').trigger('change');
 
                 var request = {
                     "request": {
@@ -133,6 +150,7 @@
 
                             $('table.flight-results').append('<tr><td>' + price + '</td><td>' + parseDate(departureDate) + ' / ' + parseDate(arrivalDate) + '</td><td>' + hours + ' hrs ' + minutes + ' mins</td><td>' + carrierCode + flightNumber + '</td></tr>');
                             $('table.flight-results').show();
+                            $('div.weather-results').show();
                         });
                     }
                 });
@@ -166,6 +184,6 @@
                     airportList.push(fullName);
                 }
             }
-        </script>
+        </script>  
     </body>
 </html>

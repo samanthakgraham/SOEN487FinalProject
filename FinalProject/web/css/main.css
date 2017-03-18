@@ -26,4 +26,15 @@ th, td {
     border: 1px solid #ccc;
     text-align: center!important;
 }
+div.weather-results {
+    display: none;
+}
+div.darksky-logo {
+    background-image: url('https://darksky.net/dev/img/attribution/poweredby.png');
+    background-repeat: no-repeat;
+    background-size: contain;
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+}
 
