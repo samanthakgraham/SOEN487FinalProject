@@ -37,4 +37,16 @@ div.darksky-logo {
     height: 100px;
     margin: 0 auto;
 }
+div.form-error {
+    display: none;
+    width: 50%;
+    margin: 0 auto;
+}
+div.form-error p {
+    display: none;
+    padding: 5px;
+}
+input.error {
+    border: 1px solid red;
+}
 
