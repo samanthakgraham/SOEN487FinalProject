@@ -10,7 +10,7 @@ var planner = {
         });
 
         $("#source").autocomplete({
-            source: function (request, resolve) {
+            source: function (request, resolve) {                
                 resolve(airportList);
             }
         });
@@ -82,7 +82,7 @@ var planner = {
         return error;
     },
     searchAirports: function (searchTerm) {
-        if (searchTerm.length > 1) {
+        if (searchTerm.length > 2) {
             $.ajax({
                 url: 'https://iatacodes.org/api/v6/autocomplete.jsonp',
                 type: 'GET',
@@ -90,10 +90,9 @@ var planner = {
                 dataType: 'JSONP',
                 data: {'api_key': 'c9a88c43-2e76-47ef-9779-54588569b52e', 'query': searchTerm},
                 success: function (data) {
-                    airportList = [];
-
-                    $.each(data.response.airports, planner.addAirportToList);
-                    $.each(data.response.airports_by_cities, planner.addAirportToList);
+                    airportList = [];                   
+//                    $.each(data.response.airports, planner.addAirportToList);
+                    $.each(data.response.airports_by_cities, planner.addAirportToList);                  
                 }
             });
         }

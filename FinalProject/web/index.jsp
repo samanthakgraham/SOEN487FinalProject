@@ -21,8 +21,8 @@
             <h3>Trip Planner</h3>
             <form class="flight-search">
                 <div class="form-group">
-                    <input type="text" name="source" id="source" placeholder="From (city/airport code)" class="form-control" />                    
-                    <input type="text" name="destination" id="destination" placeholder="To (city/airport code)" class="form-control" />
+                    <input type="text" name="source" id="source" placeholder="From (city)" class="form-control" />                    
+                    <input type="text" name="destination" id="destination" placeholder="To (city)" class="form-control" />
                     <input type="hidden" name="destinationLat" id="destinationLat" />
                     <input type="hidden" name="destinationLong" id="destinationLong" />
                 </div>
