@@ -1,9 +1,7 @@
 var airportList = [];
 
 var planner = {
-    init: function () {
-        var object = this;
-
+    init: function () {        
         $('.flight-search input').focus(function () {
             $('.form-error').hide();
             $(this).removeClass('error');
@@ -21,25 +19,25 @@ var planner = {
             },
             select: function (event, ui) {
                 var airportName = ui.item.value.split(' - ')[1];
-                object.getDestinationGpsCoordinates(airportName);
+                planner.getDestinationGpsCoordinates(airportName);
             }
         });
 
         $('#source').keyup(function () {
-            object.searchAirports($(this).val());
+            planner.searchAirports($(this).val());
         });
 
         $('#destination').keyup(function () {
-            object.searchAirports($(this).val());
+            planner.searchAirports($(this).val());
         });
 
         $('.search').click(function (e) {
             e.preventDefault();
-            var validation = object.validateForm();
+            var validation = planner.validateForm();
             $('.form-error p').hide();
 
             if (!validation.length) {
-                object.getFlights();
+                planner.getFlights();
             } else {
                 $('.form-error').show();
                 $('p.error-' + validation).show();
@@ -81,7 +79,7 @@ var planner = {
 
         return error;
     },
-    searchAirports: function (searchTerm) {
+    searchAirports: function (searchTerm) {                
         if (searchTerm.length > 2) {
             $.ajax({
                 url: 'https://iatacodes.org/api/v6/autocomplete.jsonp',
@@ -89,9 +87,8 @@ var planner = {
                 crossDomain: true,
                 dataType: 'JSONP',
                 data: {'api_key': 'c9a88c43-2e76-47ef-9779-54588569b52e', 'query': searchTerm},
-                success: function (data) {
-                    airportList = [];                   
-//                    $.each(data.response.airports, planner.addAirportToList);
+                success: function (data) { 
+                    airportList = []; 
                     $.each(data.response.airports_by_cities, planner.addAirportToList);                  
                 }
             });
@@ -159,25 +156,31 @@ var planner = {
             contentType: 'application/json',
             success: function (data) {
                 $('div.loading').hide();
-                $('table.flight-results').html('<tr><th>Price</th><th>Departs / Arrives</th><th>Duration</th><th>Flight Number</th></tr>');
+                
+                if(data.trips.tripOption === undefined) {
+                    $('table.flight-results').html('<tr><th>No flight results found</th></tr>');
+                } else {
+                    $('table.flight-results').html('<tr><th>Price</th><th>Departs / Arrives</th><th>Duration</th><th>Flight Number</th></tr>');
+                    
+                    $.each(data.trips.tripOption, function (key, value) {
+                        var price = value.saleTotal;
+                        var duration = value.slice[0]['duration'];
+                        var hours = Math.floor(duration / 60);
+                        var minutes = (duration % 60);
 
-                $.each(data.trips.tripOption, function (key, value) {
-                    var price = value.saleTotal;
-                    var duration = value.slice[0]['duration'];
-                    var hours = Math.floor(duration / 60);
-                    var minutes = (duration % 60);
+                        var departureDate = value.slice[0]['segment'][0]['leg'][0]['departureTime'];
+                        var lastElement = value.slice[0]['segment'].length - 1;
+                        var arrivalDate = value.slice[0]['segment'][lastElement]['leg'][0]['arrivalTime']
 
-                    var departureDate = value.slice[0]['segment'][0]['leg'][0]['departureTime'];
-                    var lastElement = value.slice[0]['segment'].length - 1;
-                    var arrivalDate = value.slice[0]['segment'][lastElement]['leg'][0]['arrivalTime']
+                        var carrierCode = value.slice[0]['segment'][0]['flight']['carrier'];
+                        var flightNumber = value.slice[0]['segment'][0]['flight']['number'];
 
-                    var carrierCode = value.slice[0]['segment'][0]['flight']['carrier'];
-                    var flightNumber = value.slice[0]['segment'][0]['flight']['number'];
-
-                    $('table.flight-results').append('<tr><td>' + price + '</td><td>' + planner.parseDate(departureDate) + ' / ' + planner.parseDate(arrivalDate) + '</td><td>' + hours + ' hrs ' + minutes + ' mins</td><td>' + carrierCode + flightNumber + '</td></tr>');
-                    $('table.flight-results').show();
-                    $('div.weather-results').show();
-                });
+                        $('table.flight-results').append('<tr><td>' + price + '</td><td>' + planner.parseDate(departureDate) + ' / ' + planner.parseDate(arrivalDate) + '</td><td>' + hours + ' hrs ' + minutes + ' mins</td><td>' + carrierCode + flightNumber + '</td></tr>');                    
+                        $('div.weather-results').show();
+                    });
+                } 
+                
+                $('table.flight-results').show();
             }
         });
     },

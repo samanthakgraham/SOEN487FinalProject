@@ -50,3 +50,9 @@ input.error {
     border: 1px solid red;
 }
 
+@media screen and (max-width: 600px) {
+    input.form-control, table.flight-results{        
+        width: 100%;
+    }
+}
+
