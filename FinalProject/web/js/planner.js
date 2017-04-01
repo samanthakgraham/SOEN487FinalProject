@@ -87,9 +87,10 @@ var planner = {
                 crossDomain: true,
                 dataType: 'JSONP',
                 data: {'api_key': 'c9a88c43-2e76-47ef-9779-54588569b52e', 'query': searchTerm},
-                success: function (data) { 
+                success: function (data) {                     
                     airportList = []; 
-                    $.each(data.response.airports_by_cities, planner.addAirportToList);                  
+                    $.each(data.response.airports_by_cities, planner.addAirportToList);
+                    $.each(data.response.airports, planner.addAirportToList);
                 }
             });
         }
